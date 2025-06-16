@@ -1,0 +1,16 @@
+pyproject.toml
+app/__about__.py
+app/main.py
+app/api/routes/__init__.py
+app/api/routes/auth.py
+app/core/config.py
+app/core/database.py
+app/models/user.py
+app/schemas/auth.py
+app/services/auth_service.py
+docplatform_backend.egg-info/PKG-INFO
+docplatform_backend.egg-info/SOURCES.txt
+docplatform_backend.egg-info/dependency_links.txt
+docplatform_backend.egg-info/entry_points.txt
+docplatform_backend.egg-info/requires.txt
+docplatform_backend.egg-info/top_level.txt

@@ -1,0 +1,28 @@
+{
+  "name": "docplatform",
+  "version": "1.0.0",
+  "description": "A production-ready document platform with AI-powered template conversion, Salesforce integration, and high-volume document generation capabilities.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && py -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "dev:frontend": "cd frontend && npm run dev",
+    "start": "npm run dev",
+    "install:all": "cd frontend && npm install",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "docplatform",
+    "google-oauth",
+    "fastapi",
+    "nextjs"
+  ],
+  "author": "DocPlatform Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "react-icons": "^5.5.0"
+  }
+}

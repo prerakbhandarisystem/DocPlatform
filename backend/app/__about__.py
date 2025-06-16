@@ -1,0 +1,1 @@
+"""Version information for DocPlatform backend."""__version__ = "1.0.0"
