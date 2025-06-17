@@ -28,9 +28,10 @@ interface DocumentData {
 
 interface TopHeaderProps {
   documentData: DocumentData | null;
+  onShowMergeFields?: () => void;
 }
 
-export function TopHeader({ documentData }: TopHeaderProps) {
+export function TopHeader({ documentData, onShowMergeFields }: TopHeaderProps) {
   const [isFavorited, setIsFavorited] = useState(false);
   const [viewers] = useState(3); // Mock viewer count
   const [activeNav, setActiveNav] = useState('documents');
@@ -196,6 +197,20 @@ export function TopHeader({ documentData }: TopHeaderProps) {
                 </div>
               </div>
 
+              {/* Merge Fields */}
+              {onShowMergeFields && (
+                <button
+                  onClick={onShowMergeFields}
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  title="View Salesforce Merge Fields"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Merge Fields
+                </button>
+              )}
+
               {/* Favorite */}
               <button
                 onClick={() => setIsFavorited(!isFavorited)}
@@ -210,7 +225,7 @@ export function TopHeader({ documentData }: TopHeaderProps) {
               </button>
 
               {/* Share */}
-              <button className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+              <button className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
                 <ShareIcon className="w-4 h-4" />
                 Share
               </button>

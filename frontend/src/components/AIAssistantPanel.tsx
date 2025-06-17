@@ -343,7 +343,7 @@ export function AIAssistantPanel({ documentId, documentData, documentText, textL
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 custom-scrollbar" style={{ maxHeight: 'calc(100vh - 400px)' }}>
         {messages.length === 0 && (
           <div className="text-center text-gray-500 py-8">
             <SparklesIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -354,6 +354,10 @@ export function AIAssistantPanel({ documentId, documentData, documentText, textL
               <p>• Summarize content</p>
               <p>• Check grammar and style</p>
               <p>• Translate text</p>
+              <p>• Convert to templates</p>
+              <p className="pt-4 text-xs text-gray-400">
+                💡 Tip: Start typing multiple messages to test vertical scrolling
+              </p>
             </div>
           </div>
         )}

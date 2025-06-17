@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { StatusCheck } from '@/components/StatusCheck';
+
 import { 
   FaFileUpload, 
   FaFileAlt, 
@@ -26,6 +26,12 @@ interface User {
   avatar_url?: string;
 }
 
+interface SalesforceConnection {
+  connected: boolean;
+  instance_url?: string;
+  has_credentials: boolean;
+}
+
 export default function DashboardLayout({
   children,
 }: {
@@ -36,6 +42,11 @@ export default function DashboardLayout({
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [salesforceConnection, setSalesforceConnection] = useState<SalesforceConnection>({
+    connected: false,
+    has_credentials: false
+  });
+  const [salesforceLoading, setSalesforceLoading] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -56,7 +67,111 @@ export default function DashboardLayout({
     }
 
     setIsLoading(false);
+    checkSalesforceConnection();
+    handleOAuthCallback();
   }, [router]);
+
+  // Handle OAuth callback notifications
+  const handleOAuthCallback = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const salesforceParam = urlParams.get('salesforce');
+    
+    if (salesforceParam === 'connected') {
+      // Show success notification
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300';
+      notification.innerHTML = `
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <span>Successfully connected to Salesforce!</span>
+        </div>
+      `;
+      
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+      }, 4000);
+      
+      // Remove URL parameters and refresh connection status
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTimeout(checkSalesforceConnection, 1000);
+    } else if (salesforceParam === 'error') {
+      const message = urlParams.get('message') || 'Authentication failed';
+      
+      // Show error notification
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300';
+      notification.innerHTML = `
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span>Salesforce connection failed: ${message}</span>
+        </div>
+      `;
+      
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+      }, 6000);
+      
+      // Remove URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  };
+
+  const checkSalesforceConnection = async () => {
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const response = await fetch(`${backendUrl}/api/v1/salesforce/status`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setSalesforceConnection(data);
+      }
+    } catch (error) {
+      console.error('Error checking Salesforce status:', error);
+    }
+  };
+
+  const connectToSalesforce = async () => {
+    setSalesforceLoading(true);
+    
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const response = await fetch(`${backendUrl}/api/v1/salesforce/auth/url`);
+      const data = await response.json();
+      
+      if (data.success && data.authorization_url) {
+        window.location.href = data.authorization_url;
+      } else {
+        console.error('Failed to get authorization URL:', data.error);
+        setSalesforceLoading(false);
+      }
+    } catch (error) {
+      console.error('Error initiating Salesforce OAuth:', error);
+      setSalesforceLoading(false);
+    }
+  };
+
+  const disconnectFromSalesforce = async () => {
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const response = await fetch(`${backendUrl}/api/v1/salesforce/disconnect`, {
+        method: 'POST',
+      });
+      
+      if (response.ok) {
+        setSalesforceConnection({ connected: false, has_credentials: false });
+      }
+    } catch (error) {
+      console.error('Error disconnecting from Salesforce:', error);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
@@ -215,6 +330,96 @@ export default function DashboardLayout({
                 );
               })}
             </div>
+
+            {/* Salesforce Integration Section */}
+            <div className="mt-6">
+              {!isSidebarCollapsed && (
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3">
+                  Integrations
+                </h4>
+              )}
+              
+              <div className={`${isSidebarCollapsed ? 'px-2' : 'px-4'} mb-2`}>
+                {salesforceConnection.connected ? (
+                  <div className={`${isSidebarCollapsed ? 'justify-center px-2' : 'px-4'} py-3 bg-green-50 border border-green-200 rounded-xl`}>
+                    {!isSidebarCollapsed ? (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm font-medium text-green-800">Salesforce</p>
+                            <p className="text-xs text-green-600">Connected</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={disconnectFromSalesforce}
+                          className="text-green-600 hover:text-red-600 transition-colors"
+                          title="Disconnect"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center">
+                        <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center" title="Salesforce Connected">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={connectToSalesforce}
+                    disabled={salesforceLoading}
+                    className={`
+                      group flex items-center w-full py-3 text-sm font-medium rounded-xl transition-all duration-200
+                      ${isSidebarCollapsed ? 'justify-center px-2' : 'px-4'}
+                      ${salesforceLoading 
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                        : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:shadow-sm border border-gray-200 hover:border-blue-300'
+                      }
+                    `}
+                    title={isSidebarCollapsed ? "Connect Salesforce" : undefined}
+                  >
+                    {salesforceLoading ? (
+                      <>
+                        <div className={`animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400 ${
+                          isSidebarCollapsed ? '' : 'mr-4'
+                        }`}></div>
+                        {!isSidebarCollapsed && (
+                          <div>
+                            <div className="font-medium">Connecting...</div>
+                            <div className="text-xs text-gray-500">Please wait</div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <svg className={`h-5 w-5 text-blue-600 ${
+                          isSidebarCollapsed ? '' : 'mr-4'
+                        }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        {!isSidebarCollapsed && (
+                          <div>
+                            <div className="font-medium">Connect Salesforce</div>
+                            <div className="text-xs text-gray-500">Enable integrations</div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
           </nav>
 
           {/* Logout Section */}
@@ -252,7 +457,7 @@ export default function DashboardLayout({
         </div>
 
         {/* Status Check Component */}
-        <StatusCheck />
+  
       </div>
     </ErrorBoundary>
   );

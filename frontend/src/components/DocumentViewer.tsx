@@ -5,6 +5,7 @@ import { AIAssistantPanel } from './AIAssistantPanel';
 import { SuggestionOverlay } from './SuggestionOverlay';
 import { FloatingInsertToolbar } from './FloatingInsertToolbar';
 import { TopHeader } from './TopHeader';
+import { SalesforceMetadataPanel } from './SalesforceMetadataPanel';
 
 interface DocumentData {
   id: string;
@@ -48,6 +49,8 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  // Salesforce merge fields panel state
+  const [showMergeFieldsPanel, setShowMergeFieldsPanel] = useState(false);
 
   // Cursor-style UI state
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -59,6 +62,8 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
   useEffect(() => {
     fetchDocument();
   }, [documentId]);
+
+
 
   // Handle document clicks to show/hide floating toolbar
   useEffect(() => {
@@ -315,10 +320,13 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
   return (
     <div className="flex h-screen w-full relative flex-col">
       {/* Top Header */}
-      <TopHeader documentData={documentData} />
+      <TopHeader 
+        documentData={documentData} 
+        onShowMergeFields={() => setShowMergeFieldsPanel(true)}
+      />
 
       {/* Main Content Area */}
-      <div className="flex flex-1">
+      <div className="flex flex-1 h-full min-h-0">
         {/* Google Docs Editor */}
         <div className="flex-1 min-w-0 relative">
           {embedUrl && (
@@ -343,7 +351,7 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
 
         {/* AI Assistant Panel */}
         <div 
-          className={`bg-white border-l border-gray-200 flex flex-col ai-panel transition-all duration-300 ${
+          className={`bg-white border-l border-gray-200 flex flex-col ai-panel transition-all duration-300 h-full ${
             isCollapsed ? 'w-12' : ''
           }`}
           style={{ width: isCollapsed ? 48 : panelWidth }}
@@ -416,6 +424,13 @@ export function DocumentViewer({ documentId }: DocumentViewerProps) {
           position={toolbarPosition}
         />
       </div>
+
+      {/* Salesforce Merge Fields Panel */}
+      <SalesforceMetadataPanel
+        isVisible={showMergeFieldsPanel}
+        onClose={() => setShowMergeFieldsPanel(false)}
+        onInsertMergeField={insertTextIntoDocument}
+      />
     </div>
   );
 } 

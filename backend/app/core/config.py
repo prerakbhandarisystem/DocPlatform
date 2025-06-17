@@ -67,10 +67,7 @@ class Settings(BaseSettings):
     
     # Salesforce
     SALESFORCE_CLIENT_ID: Optional[str] = Field(default=None, description="Salesforce client ID")
-    SALESFORCE_CLIENT_SECRET: Optional[str] = Field(default=None, description="Salesforce client secret")
-    SALESFORCE_USERNAME: Optional[str] = Field(default=None, description="Salesforce username")
-    SALESFORCE_PASSWORD: Optional[str] = Field(default=None, description="Salesforce password")
-    SALESFORCE_SECURITY_TOKEN: Optional[str] = Field(default=None, description="Salesforce security token")
+    SALESFORCE_REDIRECT_URI: Optional[str] = Field(default=None, description="Salesforce OAuth redirect URI")
     SALESFORCE_DOMAIN: str = Field(default="login", description="Salesforce domain (login or test)")
     
     # Document Processing

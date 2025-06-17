@@ -68,6 +68,7 @@ class DatabaseManager:
             # Import all models here to ensure they are registered
             from app.models.user import User
             from app.models.document import Document
+            from app.models.template import Template, TemplateVersion, Clause, GeneratedDocument
             
             Base.metadata.create_all(bind=self.engine)
             logger.info("Database tables created successfully")

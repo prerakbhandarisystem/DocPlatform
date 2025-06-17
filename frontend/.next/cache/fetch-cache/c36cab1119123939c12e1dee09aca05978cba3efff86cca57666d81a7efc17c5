@@ -1,1 +1,0 @@
-{"kind":"FETCH","data":{"headers":{"content-disposition":"inline; filename=test-document.txt","content-length":"1","content-type":"text/plain; charset=utf-8","date":"Sun, 01 Jun 2025 11:29:31 GMT","server":"uvicorn"},"body":"IA==","status":200,"url":"http://localhost:8000/api/v1/documents/fbca4808-6b15-48cb-a3cd-d038f607406e/content"},"revalidate":31536000,"tags":[]}
